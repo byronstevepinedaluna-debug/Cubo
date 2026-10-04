@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solucionador de Cubo de Rubik 2x2 3D Paso a Paso</title>
+  <link rel="stylesheet" href="/src/style.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='50' height='50' fill='%23ffffff'/><rect x='50' width='50' height='50' fill='%23b71234'/><rect y='50' width='50' height='50' fill='%23009b48'/><rect x='50' y='50' width='50' height='50' fill='%23ffd500'/></svg>" />
+</head>
+<body>
+
+  <!-- Encabezado -->
+  <header>
+    <div class="logo-container">
+      <div class="cube-icon-mini">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="logo-text">
+        <h1>Solucionador Rubik 2x2</h1>
+        <p>Visualizador 3D interactivo y resolución óptima paso a paso</p>
+      </div>
+    </div>
+    <div class="header-badges">
+      <span class="badge">⚡ Solución Óptima (≤ 11 giros)</span>
+      <span class="badge">🌐 Three.js 3D</span>
+    </div>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main>
+    <!-- Columna Izquierda: Vista 3D del Cubo -->
+    <section class="viewport-section">
+      <div class="canvas-card">
+        <div id="canvas-container"></div>
+        <div class="canvas-overlay-hints">
+          <span>🖱️ Arrastra para girar la vista 360° | Rueda para zoom | Clic para pintar</span>
+        </div>
+        <div class="canvas-overlay-controls">
+          <button id="btn-reset-cam" class="icon-btn" title="Restablecer cámara 3D">🎯</button>
+        </div>
+      </div>
+
+      <!-- Barra de acciones rápidas -->
+      <div class="quick-actions">
+        <button id="btn-quick-scramble" class="btn btn-secondary">
+          <span>🎲</span> Mezclar
+        </button>
+        <button id="btn-quick-edit" class="btn btn-secondary">
+          <span>🎨</span> Pintar
+        </button>
+        <button id="btn-quick-solve" class="btn btn-primary">
+          <span>🧩</span> Resolver
+        </button>
+        <button id="btn-quick-reset" class="btn btn-secondary">
+          <span>🔄</span> Resuelto
+        </button>
+      </div>
+    </section>
+
+    <!-- Columna Derecha: Panel de Control (Pintura y Paso a Paso) -->
+    <section class="control-section">
+      <div class="card">
+        <!-- Pestañas de Modo (Segmented Control) -->
+        <div class="tabs-header">
+          <button id="tab-btn-paint" class="tab-btn active">
+            <span>🎨</span> Pintar Cubo
+          </button>
+          <button id="tab-btn-solve" class="tab-btn">
+            <span>⚡</span> Paso a Paso
+          </button>
+          <button id="tab-btn-tutorial" class="tab-btn">
+            <span>📚</span> Aprender (LBL)
+          </button>
+        </div>
+
+        <!-- PESTAÑA 1: Editor de Colores y Red 2D -->
+        <div id="paint-tab-content">
+          <!-- Paleta de Colores -->
+          <div class="color-picker-group">
+            <div class="color-picker-label">
+              <span>Selecciona un color para pintar:</span>
+              <span id="palette-selected-name" style="font-weight: bold; color: #fff;">Blanco seleccionado</span>
+            </div>
+            <div class="palette-grid">
+              <button class="palette-btn active" data-color="white" title="Blanco (Cara Superior U)">
+                <span class="palette-swatch" style="background: var(--c-white);"></span>
+                <span class="palette-count" id="count-white">4/4</span>
+              </button>
+              <button class="palette-btn" data-color="yellow" title="Amarillo (Cara Inferior D)">
+                <span class="palette-swatch" style="background: var(--c-yellow);"></span>
+                <span class="palette-count" id="count-yellow">4/4</span>
+              </button>
+              <button class="palette-btn" data-color="green" title="Verde (Cara Frontal F)">
+                <span class="palette-swatch" style="background: var(--c-green);"></span>
+                <span class="palette-count" id="count-green">4/4</span>
+              </button>
+              <button class="palette-btn" data-color="blue" title="Azul (Cara Posterior B)">
+                <span class="palette-swatch" style="background: var(--c-blue);"></span>
+                <span class="palette-count" id="count-blue">4/4</span>
+              </button>
+              <button class="palette-btn" data-color="orange" title="Naranja (Cara Izquierda L)">
+                <span class="palette-swatch" style="background: var(--c-orange);"></span>
+                <span class="palette-count" id="count-orange">4/4</span>
+              </button>
+              <button class="palette-btn" data-color="red" title="Rojo (Cara Derecha R)">
+                <span class="palette-swatch" style="background: var(--c-red);"></span>
+                <span class="palette-count" id="count-red">4/4</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Red 2D Desplegada del Cubo (U, L, F, R, B, D) -->
+          <div class="net-section">
+            <div class="color-picker-label">
+              <span>Red desplegada (haz clic en cualquier faceta):</span>
+            </div>
+            <div class="net-container">
+              <div class="net-grid">
+                <!-- Cara U (Arriba) -->
+                <div class="net-face face-u" id="face-u">
+                  <span class="net-face-label">U (Arriba)</span>
+                  <div class="net-sticker" data-fid="0"></div>
+                  <div class="net-sticker" data-fid="1"></div>
+                  <div class="net-sticker" data-fid="2"></div>
+                  <div class="net-sticker" data-fid="3"></div>
+                </div>
+                <!-- Cara L (Izquierda) -->
+                <div class="net-face face-l" id="face-l">
+                  <span class="net-face-label">L (Izq)</span>
+                  <div class="net-sticker" data-fid="4"></div>
+                  <div class="net-sticker" data-fid="5"></div>
+                  <div class="net-sticker" data-fid="6"></div>
+                  <div class="net-sticker" data-fid="7"></div>
+                </div>
+                <!-- Cara F (Frontal) -->
+                <div class="net-face face-f" id="face-f">
+                  <span class="net-face-label">F (Frente)</span>
+                  <div class="net-sticker" data-fid="8"></div>
+                  <div class="net-sticker" data-fid="9"></div>
+                  <div class="net-sticker" data-fid="10"></div>
+                  <div class="net-sticker" data-fid="11"></div>
+                </div>
+                <!-- Cara R (Derecha) -->
+                <div class="net-face face-r" id="face-r">
+                  <span class="net-face-label">R (Der)</span>
+                  <div class="net-sticker" data-fid="12"></div>
+                  <div class="net-sticker" data-fid="13"></div>
+                  <div class="net-sticker" data-fid="14"></div>
+                  <div class="net-sticker" data-fid="15"></div>
+                </div>
+                <!-- Cara B (Atrás) -->
+                <div class="net-face face-b" id="face-b">
+                  <span class="net-face-label">B (Atrás)</span>
+                  <div class="net-sticker" data-fid="16"></div>
+                  <div class="net-sticker" data-fid="17"></div>
+                  <div class="net-sticker" data-fid="18"></div>
+                  <div class="net-sticker" data-fid="19"></div>
+                </div>
+                <!-- Cara D (Abajo) -->
+                <div class="net-face face-d" id="face-d">
+                  <span class="net-face-label">D (Abajo)</span>
+                  <div class="net-sticker" data-fid="20"></div>
+                  <div class="net-sticker" data-fid="21"></div>
+                  <div class="net-sticker" data-fid="22"></div>
+                  <div class="net-sticker" data-fid="23"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mensaje de Validación de Estado -->
+          <div id="validation-status" class="status-box status-valid">
+            <span class="status-icon">✓</span>
+            <span id="validation-text">Cubo configurado correctamente y listo para resolver.</span>
+          </div>
+
+          <!-- Botones de Acción de Pintura -->
+          <div style="display: flex; gap: 0.75rem;">
+            <button id="btn-start-solve" class="btn btn-primary" style="flex: 2;">
+              <span>🚀</span> Calcular Solución y Comenzar
+            </button>
+            <button id="btn-clear-colors" class="btn btn-secondary" style="flex: 1;" title="Vaciar colores">
+              <span>🧹</span> Vaciar
+            </button>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 2: Modo Paso a Paso Guiado -->
+        <div id="solve-tab-content" style="display: none;" class="solution-panel">
+          <!-- Tira de Pasos de la Solución -->
+          <div>
+            <div class="color-picker-label">
+              <span id="solution-summary">Solución en 0 pasos:</span>
+              <span id="solution-progress-text">Paso 0 de 0</span>
+            </div>
+            <div class="stepper-track-container">
+              <div class="stepper-track" id="stepper-track">
+                <!-- Se puebla dinámicamente con chips de movimientos -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Gran Tarjeta de Visualización del Paso Actual (Diseño Horizontal Compacto) -->
+          <div class="current-step-card" id="step-card">
+            <div class="step-move-huge" id="card-move-text">-</div>
+            <div class="step-info-col">
+              <div class="step-number-tag" id="card-step-tag">LISTO PARA COMENZAR</div>
+              <div class="step-desc-text" id="card-desc-text">
+                Presiona "Siguiente Paso" para ejecutar el primer giro del cubo.
+              </div>
+              <div class="step-progress-bar">
+                <div class="step-progress-fill" id="card-progress-fill"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tarjeta de Celebración al Resolver (oculta por defecto) -->
+          <div class="solved-celebration" id="solved-celebration" style="display: none;">
+            <div class="party-icon">🎉</div>
+            <h2 style="font-size: 1.4rem; color: #6ee7b7;">¡Cubo Resuelto con Éxito!</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+              Todos los movimientos se han completado y el cubo está 100% resuelto.
+            </p>
+            <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+              <button id="btn-scramble-again" class="btn btn-primary">
+                <span>🎲</span> Mezclar de Nuevo
+              </button>
+              <button id="btn-edit-again" class="btn btn-secondary">
+                <span>🎨</span> Pintar Otro Cubo
+              </button>
+            </div>
+          </div>
+
+          <!-- CONTROLES PASO A PASO (Requisito Clave: Avanzar con un Clic) -->
+          <div class="step-controls" id="step-controls-container">
+            <div class="step-buttons-main">
+              <button id="btn-prev-step" class="btn btn-secondary" disabled>
+                <span>⬅️</span> Anterior
+              </button>
+              <button id="btn-next-step" class="btn btn-next-step">
+                <span>Siguiente Paso</span> <span>➡️</span>
+              </button>
+            </div>
+
+            <div class="step-buttons-sub">
+              <button id="btn-autoplay" class="btn btn-secondary">
+                <span id="autoplay-icon">▶️</span> <span id="autoplay-text">Auto-Play</span>
+              </button>
+              <button id="btn-restart-steps" class="btn btn-secondary">
+                <span>🔄</span> Reiniciar Pasos
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 3: Tutorial Interactivo Gráfico para Humanos (Método Oficial LBL) -->
+        <div id="tutorial-tab-content" style="display: none;" class="tutorial-panel">
+          <!-- Barra de selección de fuente de cubo y casos de estudio -->
+          <div class="tut-toolbar-card">
+            <div class="tut-actions-row">
+              <button id="btn-tut-load-current" class="btn btn-primary btn-sm" title="Cargar los colores que tienes configurados en el cubo 3D o editor">
+                <span>🎨</span> Usar Mi Cubo Actual
+              </button>
+              <button id="btn-tut-scramble" class="btn btn-secondary btn-sm" title="Generar un nuevo cubo mezclado aleatorio para practicar">
+                <span>🎲</span> Mezclar Cubo
+              </button>
+            </div>
+
+            <div class="tut-presets-row">
+              <span class="presets-tag">Practicar Caso:</span>
+              <div class="presets-track">
+                <button class="tut-preset-chip active" data-preset="sune" title="Caso Sune (1 amarilla)">🐟 SUNE</button>
+                <button class="tut-preset-chip" data-preset="anti-sune" title="Caso Anti-Sune (Pez simétrico)">🔄 Anti-Sune</button>
+                <button class="tut-preset-chip" data-preset="oll-u" title="Faros al frente (U)">🚗 Faros (U)</button>
+                <button class="tut-preset-chip" data-preset="oll-h" title="0 amarillos arriba (H)">🕶️ Doble Faro</button>
+                <button class="tut-preset-chip" data-preset="pll-bar" title="Barra en un lateral (A-Perm)">🟢 Barra PLL</button>
+                <button class="tut-preset-chip" data-preset="pll-diag" title="Sin barras laterales (Y-Perm)">❌ Diagonal</button>
+                <button class="tut-preset-chip" data-preset="white-layer" title="Primera capa">🤍 Capa Blanca</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selector de las 3 Etapas del Método Oficial -->
+          <div class="tutorial-nav-pills">
+            <button class="tutorial-stage-btn active" data-stage="0">
+              <span class="stage-num-badge">1</span> Capa Blanca
+            </button>
+            <button class="tutorial-stage-btn" data-stage="1">
+              <span class="stage-num-badge">2</span> Orientar (OLL)
+            </button>
+            <button class="tutorial-stage-btn" data-stage="2">
+              <span class="stage-num-badge">3</span> Resolver (PLL)
+            </button>
+          </div>
+
+          <!-- Tarjeta Unificada de la Lección / Etapa -->
+          <div class="tut-lesson-card">
+            <div class="lesson-top-bar">
+              <div class="lesson-badge-title">
+                <span class="badge" id="tut-stage-badge">Método Oficial</span>
+                <h2 id="tut-stage-title" class="lesson-title">Etapa 1: La Corona Blanca</h2>
+              </div>
+              <button id="btn-tut-reset" class="btn btn-secondary btn-sm" title="Restablecer inicio de la etapa">
+                <span>🔄</span> Reiniciar
+              </button>
+            </div>
+
+            <!-- Banner del Algoritmo Oficial -->
+            <div class="alg-highlight-bar">
+              <span class="alg-highlight-label">ALGORITMO OFICIAL:</span>
+              <span id="tut-algorithm-name" class="alg-highlight-name">SUNE (Pez)</span>
+            </div>
+
+            <!-- Lista de Puntos Didácticos -->
+            <div class="lesson-guide-list">
+              <div class="guide-item">
+                <span class="guide-icon">🎯</span>
+                <div class="guide-text">
+                  <strong>Objetivo:</strong> <span id="tut-stage-objective">Armar una cara blanca completa donde todos los colores laterales coincidan.</span>
+                </div>
+              </div>
+              <div class="guide-item">
+                <span class="guide-icon">👀</span>
+                <div class="guide-text">
+                  <strong>Reconocimiento:</strong> <span id="tut-stage-recognition">Observa las facetas superiores...</span>
+                </div>
+              </div>
+              <div class="guide-item">
+                <span class="guide-icon">💡</span>
+                <div class="guide-text">
+                  <strong>¿Cuándo usarlo?:</strong> <span id="tut-stage-when">Regla para memorizar cuándo aplicarlo...</span>
+                </div>
+              </div>
+              <div class="guide-item">
+                <span class="guide-icon">📐</span>
+                <div class="guide-text">
+                  <strong>Cómo sostener el cubo:</strong> <span id="tut-stage-hold">Mantén la base blanca abajo...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Movimientos de este algoritmo en tira horizontal -->
+          <div class="tut-moves-section">
+            <div class="color-picker-label" style="margin-bottom: 0.35rem;">
+              <span>Movimientos de este algoritmo (avanza con un clic):</span>
+              <span id="tut-step-counter" style="color: #60a5fa; font-weight: bold;">Movimiento 0 de 7</span>
+            </div>
+            <div class="tut-moves-grid" id="tut-moves-grid">
+              <!-- Se puebla dinámicamente -->
+            </div>
+          </div>
+
+          <!-- CONTROLES PASO A PASO MANUALES (CLIC A CLIC) -->
+          <div class="tut-step-controls">
+            <div class="step-buttons-main">
+              <button id="btn-tut-prev-step" class="btn btn-secondary" disabled>
+                <span>⬅️</span> Anterior
+              </button>
+              <button id="btn-tut-next-step" class="btn btn-next-step">
+                <span>Siguiente Movimiento</span> <span>➡️</span>
+              </button>
+            </div>
+            <div id="tut-demo-status" class="tut-status-info">
+              👉 Haz clic en <strong>"Siguiente Movimiento ➡️"</strong> para dar el primer paso.
+            </div>
+            <div class="stage-nav-footer">
+              <button id="btn-tut-prev-stage" class="btn btn-secondary btn-sm" disabled>
+                <span>⬅️</span> Etapa Anterior
+              </button>
+              <button id="btn-tut-next-stage" class="btn btn-secondary btn-sm">
+                Siguiente Etapa <span>➡️</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Pie de página -->
+  <footer>
+    <p>Solucionador de Cubo de Rubik 2x2 | Hecho con Three.js & Algoritmo Bidireccional Óptimo (God's Number ≤ 11)</p>
+  </footer>
+
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "cubo-rubik-2x2",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node test_solver.js",
+    "test:access": "node test_access_control.js"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}

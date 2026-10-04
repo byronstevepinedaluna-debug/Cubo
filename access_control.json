@@ -1,0 +1,21 @@
+{
+  "mode": "restricted",
+  "pin": "asd",
+  "allowedDevices": [
+    {
+      "token": "dev_de4lmxdqe29muhpmtpm",
+      "name": "Celular Android (mtpm)",
+      "ip": "192.168.1.65",
+      "addedAt": "2026-09-26T01:28:02.672Z",
+      "lastSeen": "2026-09-26T01:28:03.447Z"
+    },
+    {
+      "token": "dev_g2a9retowhmuhp7dkz",
+      "name": "v",
+      "ip": "192.168.1.69",
+      "addedAt": "2026-09-26T01:30:31.605Z",
+      "lastSeen": "2026-09-26T01:30:31.605Z"
+    }
+  ],
+  "pendingRequests": []
+}
